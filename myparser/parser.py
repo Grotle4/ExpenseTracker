@@ -1,18 +1,15 @@
 import argparse
 
-def main():
+def run_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--amount")
+    parser.add_argument("command")
     parser.add_argument("--description")
+    parser.add_argument("--amount")
     
 
     args = parser.parse_args()
-    print("working")
-    print(args)
-    
-def compare_command():
-    pass
+    return args
 
 
 if __name__ == "__main__":
-    main() 
+    run_parser() 
