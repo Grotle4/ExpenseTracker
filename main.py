@@ -1,6 +1,7 @@
 import argparse
 import os
 import csv
+import pandas as pd
 
 data_file = "expenses.csv"
 
@@ -16,16 +17,21 @@ def load_expenses():
 
 def save_expense(expense):
     file_exists = os.path.exists(data_file)
-    with open(data_file, "a", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["amount", "description"])
+    with open(data_file, "r+", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=["ID", "amount", "description"])
+        data = list(csv.reader(f))
+        rows = len(data)
+        expense["ID"] = rows
         if not file_exists or os.path.getsize(data_file) == 0:
-            print("working")
             writer.writeheader()
+            expense["ID"] = 1
         writer.writerow(expense)
-        print("writer: ", writer)
+        
+        
 
 def add_expense(args):
     expense = {
+        "ID": None,
         "amount": args.amount,
         "description": "".join(args.description)
     }
@@ -56,6 +62,10 @@ list_parser = subparsers.add_parser("list", help="Lists all expenses")
 
 clear_parser = subparsers.add_parser("clear", help= "Clears list of expenses")
 
+update_parser = subparsers.add_parser("update", help="Update existing parser")
+add_parser.add_argument("-nd", "--new description",type= str , help="Description for the expense")
+add_parser.add_argument("-na", "--new amount", type= float, help="Amount of money for the expense")
+
 args = parser.parse_args()
 print(args)
 if args.command == "add":
@@ -65,5 +75,7 @@ elif args.command == "list":
     list_expenses(args)
 elif args.command == "clear":
     clear_csv()
+elif args.command == "update":
+    pass
 else:
     parser.print_help()
