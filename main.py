@@ -1,7 +1,6 @@
 import argparse
 import os
 import csv
-import pandas as pd
 
 data_file = "expenses.csv"
 
@@ -27,7 +26,6 @@ def save_expense(expense):
             expense["ID"] = 1
         writer.writerow(expense)
         
-        
 
 def add_expense(args):
     expense = {
@@ -49,6 +47,28 @@ def clear_csv():
     with open(data_file, "w") as f:
         pass
 
+def update_expense(args):
+    with open(data_file, "r+") as f:
+        reader = csv.reader(f)
+        list_reader = list(reader)
+        for row in list_reader:
+            print(row)
+            if row[0].startswith(str(args.id)):
+                if args.new_amount:
+                    row[1] = args.new_amount
+                if args.new_description:
+                    row[2] = args.new_description
+                print(f"Updated ID {row[0]} with new values")
+                break
+        clean(data_file, list_reader)
+        
+
+def clean(file, list_reader):
+    with open (data_file, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerows(list_reader)
+
+
 parser = argparse.ArgumentParser(description="Parse user input over multiple command lines")
 
 subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -63,8 +83,9 @@ list_parser = subparsers.add_parser("list", help="Lists all expenses")
 clear_parser = subparsers.add_parser("clear", help= "Clears list of expenses")
 
 update_parser = subparsers.add_parser("update", help="Update existing parser")
-add_parser.add_argument("-nd", "--new description",type= str , help="Description for the expense")
-add_parser.add_argument("-na", "--new amount", type= float, help="Amount of money for the expense")
+update_parser.add_argument("-i", "--id", type= int, help="ID number for expense you want to update, use list to view id numbers")
+update_parser.add_argument("-nd", "--new_description",type= str , help="Description for the expense")
+update_parser.add_argument("-na", "--new_amount", type= float, help="Amount of money for the expense")
 
 args = parser.parse_args()
 print(args)
@@ -76,6 +97,6 @@ elif args.command == "list":
 elif args.command == "clear":
     clear_csv()
 elif args.command == "update":
-    pass
+    update_expense(args)
 else:
     parser.print_help()
