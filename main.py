@@ -105,8 +105,43 @@ def delete_expense(args):
             clean(data_file, found_lists)
                 
 
+def summary_expense(args):
+    expense_list = []
+    with open(data_file, "r+") as f:
+        reader = csv.reader(f)
+        list_reader = list(reader)
+        if not args.month:
+            try:
+                for row in list_reader[1:]:
+                    expense_list.append(row[2])
+                float_list = [float(item) for item in expense_list]
+                total_sum = sum(float_list)
+                print(total_sum)
+            except IndexError:
+                pass
+        else:
+            summary_month_expense(args)
 
-
+def summary_month_expense(args):
+    expense_list = []
+    with open(data_file, "r+") as f:
+        reader = csv.reader(f)
+        list_reader = list(reader)
+        try:
+            for row in list_reader[1:]:
+                date_string = row[1]
+                date_object = datetime.datetime.strptime(date_string, "%Y-%m-%d")
+                month = date_object.strftime("%m")
+                if month.startswith("0"):
+                    month = month[1:]
+                print("args: ", args.month)
+                if int(month) == args.month:
+                    expense_list.append(row[2])
+            float_list = [float(item) for item in expense_list]
+            total_sum = sum(float_list)
+            print(total_sum)
+        except IndexError:
+            pass
                 
         
 def update_message(id, new_amount, new_description, amount_found, description_found):
@@ -148,6 +183,9 @@ update_parser.add_argument("-a", "--amount", type= float, help="Amount of money 
 delete_parser = subparsers.add_parser("delete", help="Delete existing expense")
 delete_parser.add_argument("-i", "--id", type= int, help="ID number for expense you want to update, use list to view id numbers")
 
+summary_parser = subparsers.add_parser("summary", help="Will add all of your funds together to show total expenses")
+summary_parser.add_argument("-m", "--month", type=int, required=False, help="Enter the month number you would like to view expenses for(ex. August is 8)")
+
 
 args = parser.parse_args()
 print(args)
@@ -162,5 +200,7 @@ elif args.command == "update":
     update_expense(args)
 elif args.command == "delete":
     delete_expense(args)
+elif args.command == "summary":
+    summary_expense(args)
 else:
     parser.print_help()
