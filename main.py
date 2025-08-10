@@ -1,6 +1,10 @@
 import argparse
 import os
 import csv
+import datetime
+
+current_date = datetime.date.today()
+
 
 data_file = "expenses.csv"
 
@@ -17,7 +21,7 @@ def load_expenses():
 def save_expense(expense):
     file_exists = os.path.exists(data_file)
     with open(data_file, "r+", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["ID", "amount", "description"])
+        writer = csv.DictWriter(f, fieldnames=["ID", "date", "amount", "description"])
         data = list(csv.reader(f))
         rows = len(data)
         expense["ID"] = rows
@@ -30,6 +34,7 @@ def save_expense(expense):
 def add_expense(args):
     expense = {
         "ID": None,
+        "date": current_date,
         "amount": args.amount,
         "description": "".join(args.description)
     }
@@ -41,13 +46,15 @@ def list_expenses(args):
         print("No expenses found")
         return
     for idx, exp in enumerate(expenses, 1):
-        print(f"{idx}. {exp["amount"]} - ({exp["description"]})")
+        print(f"{idx}: {exp["description"]} Date: {exp["date"]} Amount: {exp["amount"]}")
 
 def clear_csv():
     with open(data_file, "w") as f:
         pass
 
 def update_expense(args):
+    amount_found = None
+    description_found = None
     with open(data_file, "r+") as f:
         reader = csv.reader(f)
         list_reader = list(reader)
@@ -56,14 +63,25 @@ def update_expense(args):
             if row[0].startswith(str(args.id)):
                 if args.new_amount:
                     row[1] = args.new_amount
+                    amount_found = True
                 if args.new_description:
                     row[2] = args.new_description
-                print(f"Updated ID {row[0]} with new values")
+                    description_found = True
+                update_message(row[0],row[1],row[2], amount_found, description_found)
                 break
         clean(data_file, list_reader)
         
+def update_message(id, new_amount, new_description, amount_found, description_found):
+    if amount_found and description_found is None:
+        print(f"Updating ID {id} with new amount: {new_amount}")
+    elif description_found and amount_found is None:
+        print(f"Updating ID {id} with new description: {new_description}")
+    elif amount_found and description_found:
+        print(f"Updating ID {id} with new amount({new_amount}) and new description({new_description})")
+    
 
-def clean(file, list_reader):
+
+def clean(data_file, list_reader):
     with open (data_file, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerows(list_reader)
