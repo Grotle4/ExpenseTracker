@@ -61,15 +61,53 @@ def update_expense(args):
         for row in list_reader:
             print(row)
             if row[0].startswith(str(args.id)):
-                if args.new_amount:
-                    row[1] = args.new_amount
+                if args.amount:
+                    row[1] = args.amount
                     amount_found = True
-                if args.new_description:
-                    row[2] = args.new_description
+                if args.description:
+                    row[2] = args.description
                     description_found = True
                 update_message(row[0],row[1],row[2], amount_found, description_found)
                 break
         clean(data_file, list_reader)
+
+def delete_expense(args):
+    found_lists = []
+    row_list = []
+    iteration = 0
+    found_error = False
+    with open(data_file, "r+") as f:
+        reader = csv.reader(f)
+        list_reader = list(reader)
+        print("l:", list_reader)
+        try:
+            for row in list_reader:
+                row_list.append(row[0])
+            for row in list_reader:
+                if str(args.id) not in row_list:
+                    found_error = True
+                    print(row_list)
+                    print("doesnt exist")
+                    clean(data_file,list_reader)
+                    break
+                if not row[0].startswith(str(args.id)):
+                    if row[0].startswith("ID"):
+                        print("id found")
+                        found_lists.append(row)
+                        continue
+                    iteration += 1
+                    print("found it: ", iteration)
+                    row[0] = iteration
+                    found_lists.append(row)
+        except IndexError:
+            pass
+        if found_error == False:
+            clean(data_file, found_lists)
+                
+
+
+
+                
         
 def update_message(id, new_amount, new_description, amount_found, description_found):
     if amount_found and description_found is None:
@@ -87,6 +125,8 @@ def clean(data_file, list_reader):
         writer.writerows(list_reader)
 
 
+
+
 parser = argparse.ArgumentParser(description="Parse user input over multiple command lines")
 
 subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -102,8 +142,12 @@ clear_parser = subparsers.add_parser("clear", help= "Clears list of expenses")
 
 update_parser = subparsers.add_parser("update", help="Update existing parser")
 update_parser.add_argument("-i", "--id", type= int, help="ID number for expense you want to update, use list to view id numbers")
-update_parser.add_argument("-nd", "--new_description",type= str , help="Description for the expense")
-update_parser.add_argument("-na", "--new_amount", type= float, help="Amount of money for the expense")
+update_parser.add_argument("-d", "--description",type= str , help="Description for the expense")
+update_parser.add_argument("-a", "--amount", type= float, help="Amount of money for the expense")
+
+delete_parser = subparsers.add_parser("delete", help="Delete existing expense")
+delete_parser.add_argument("-i", "--id", type= int, help="ID number for expense you want to update, use list to view id numbers")
+
 
 args = parser.parse_args()
 print(args)
@@ -116,5 +160,7 @@ elif args.command == "clear":
     clear_csv()
 elif args.command == "update":
     update_expense(args)
+elif args.command == "delete":
+    delete_expense(args)
 else:
     parser.print_help()
