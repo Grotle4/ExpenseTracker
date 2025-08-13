@@ -2,6 +2,7 @@ import argparse
 import os
 import csv
 import datetime
+import calendar
 
 current_date = datetime.date.today()
 current_time = datetime.datetime.now()
@@ -116,7 +117,7 @@ def summary_expense(args):
                     expense_list.append(row[2])
                 float_list = [float(item) for item in expense_list]
                 total_sum = sum(float_list)
-                print(total_sum)
+                print(f"Your total sum of expenses is: {total_sum}")
             except IndexError:
                 pass
         else:
@@ -136,12 +137,12 @@ def summary_month_expense(args): #add functionality to make sure it checks for c
                 if date_year == str(current_year):
                     if date_month.startswith("0"):
                         date_month = date_month[1:]
-                    print("args: ", args.month)
                     if int(date_month) == args.month:
                         expense_list.append(row[2])
+                        full_month_name = calendar.month_name[int(date_month)]
             float_list = [float(item) for item in expense_list]
             total_sum = sum(float_list)
-            print(total_sum)
+            print(f"Your total sum of expenses for the month of {full_month_name} is: {total_sum}")
         except IndexError:
             pass
                 
