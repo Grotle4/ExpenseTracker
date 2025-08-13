@@ -23,7 +23,7 @@ def load_expenses():
 
 def save_expense(expense):
     file_exists = os.path.exists(data_file)
-    with open(data_file, "r+", newline="") as f:
+    with open(data_file, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["ID", "date", "amount", "description"])
         data = list(csv.reader(f))
         rows = len(data)
@@ -163,7 +163,7 @@ def clean(data_file, list_reader):
         writer.writerows(list_reader)
 
 
-parser = argparse.ArgumentParser(description="Parse user input over multiple command lines")
+parser = argparse.ArgumentParser(description="Store and manage expenses over command line")
 
 subparsers = parser.add_subparsers(dest="command", help="Available commands")
 args_list = []
@@ -189,7 +189,6 @@ summary_parser.add_argument("-m", "--month", type=int, required=False, help="Ent
 
 
 args = parser.parse_args()
-print(args)
 if args.command == "add":
     if args.amount > 0:
         print(f"Adding item {(args.description)} with amount of {(args.amount)}")
@@ -199,7 +198,14 @@ if args.command == "add":
 elif args.command == "list":
     list_expenses(args)
 elif args.command == "clear":
-    clear_csv()
+    check = input("Are you sure you would like to clear your list of expenses(Y/N): ")
+    if check == "Y":
+        clear_csv()
+        print("List has been cleared")
+    elif check == "N":
+        print("Clear request has been cancelled")
+    else:
+        print("Not a valid input, reenter command")
 elif args.command == "update":
     if args.id:
         update_expense(args)
