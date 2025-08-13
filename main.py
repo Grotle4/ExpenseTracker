@@ -4,6 +4,8 @@ import csv
 import datetime
 
 current_date = datetime.date.today()
+current_time = datetime.datetime.now()
+current_year = current_time.year
 
 
 data_file = "expenses.csv"
@@ -87,12 +89,10 @@ def delete_expense(args):
                 if str(args.id) not in row_list:
                     found_error = True
                     print(row_list)
-                    print("doesnt exist")
                     clean(data_file,list_reader)
                     break
                 if not row[0].startswith(str(args.id)):
                     if row[0].startswith("ID"):
-                        print("id found")
                         found_lists.append(row)
                         continue
                     iteration += 1
@@ -122,7 +122,7 @@ def summary_expense(args):
         else:
             summary_month_expense(args)
 
-def summary_month_expense(args):
+def summary_month_expense(args): #add functionality to make sure it checks for current year
     expense_list = []
     with open(data_file, "r+") as f:
         reader = csv.reader(f)
@@ -131,12 +131,14 @@ def summary_month_expense(args):
             for row in list_reader[1:]:
                 date_string = row[1]
                 date_object = datetime.datetime.strptime(date_string, "%Y-%m-%d")
-                month = date_object.strftime("%m")
-                if month.startswith("0"):
-                    month = month[1:]
-                print("args: ", args.month)
-                if int(month) == args.month:
-                    expense_list.append(row[2])
+                date_month = date_object.strftime("%m")
+                date_year = date_object.strftime("%Y")
+                if date_year == str(current_year):
+                    if date_month.startswith("0"):
+                        date_month = date_month[1:]
+                    print("args: ", args.month)
+                    if int(date_month) == args.month:
+                        expense_list.append(row[2])
             float_list = [float(item) for item in expense_list]
             total_sum = sum(float_list)
             print(total_sum)
@@ -158,8 +160,6 @@ def clean(data_file, list_reader):
     with open (data_file, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerows(list_reader)
-
-
 
 
 parser = argparse.ArgumentParser(description="Parse user input over multiple command lines")
@@ -190,16 +190,25 @@ summary_parser.add_argument("-m", "--month", type=int, required=False, help="Ent
 args = parser.parse_args()
 print(args)
 if args.command == "add":
-    print(f"Adding item {(args.description)} with amount of {(args.amount)}")
-    add_expense(args)
+    if args.amount > 0:
+        print(f"Adding item {(args.description)} with amount of {(args.amount)}")
+        add_expense(args)
+    else:
+        print("Negative numbers are not a valid amount")
 elif args.command == "list":
     list_expenses(args)
 elif args.command == "clear":
     clear_csv()
 elif args.command == "update":
-    update_expense(args)
+    if args.id:
+        update_expense(args)
+    else:
+        print("No ID detected, please use list to find ID.")
 elif args.command == "delete":
-    delete_expense(args)
+    if args.id:
+        delete_expense(args)
+    else:
+        print("No ID detected, please use list to find ID.")
 elif args.command == "summary":
     summary_expense(args)
 else:
